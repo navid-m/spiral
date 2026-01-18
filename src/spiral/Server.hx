@@ -62,7 +62,48 @@ class Server {
 
 	function handleClient(client:Socket):Void {
 		try {
-			var requestData = client.input.readAll().toString();
+			client.setTimeout(5);
+
+			var lines:Array<String> = [];
+			var input = client.input;
+
+			while (true) {
+				try {
+					var line = input.readLine();
+					lines.push(line);
+					if (line == "")
+						break;
+				} catch (e:Dynamic) {
+					break;
+				}
+			}
+
+			var contentLength = 0;
+			for (line in lines) {
+				if (line.toLowerCase().indexOf("content-length:") == 0) {
+					var parts = line.split(":");
+					if (parts.length >= 2) {
+						var parsed = Std.parseInt(StringTools.trim(parts[1]));
+						contentLength = (parsed != null) ? parsed : 0;
+					}
+					break;
+				}
+			}
+
+			var body = "";
+			if (contentLength > 0) {
+				try {
+					var bodyBytes = haxe.io.Bytes.alloc(contentLength);
+					input.readFullBytes(bodyBytes, 0, contentLength);
+					body = bodyBytes.toString();
+					lines.push("");
+					lines.push(body);
+				} catch (e:Dynamic) {
+					trace('Error reading body: $e');
+				}
+			}
+
+			var requestData = lines.join("\r\n");
 			var request = Request.parse(requestData, client);
 			var response = new Response(client);
 

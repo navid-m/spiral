@@ -1,9 +1,5 @@
-import spiral.Spiral;
-import spiral.Server;
-import spiral.Request;
-import spiral.Response;
-import spiral.Router;
-import spiral.Middleware.MiddlewareHelper;
+import spiral.*;
+using spiral.Middleware;
 
 class Main {
 	static function main() {
